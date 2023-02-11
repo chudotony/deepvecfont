@@ -10,4 +10,4 @@ data_utils/test_bug.py
 data_utils/font_sfds_test
 data_utils/full_ttf_data
 .condarc
-nohup*
+nohup*.DS_Store
