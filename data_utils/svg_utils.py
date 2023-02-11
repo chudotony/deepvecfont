@@ -52,19 +52,81 @@ def grouper(iterable, batch_size, fill_value=None):
 
 
 def _map_uni_to_alphanum(uni):
-    """Maps [0-9 A-Z a-z] to numbers 0-62."""
-    if 48 <= uni <= 57:
+    """Maps [0-9 A-Z a-z А-Ё a-ё] to numbers 0-98."""
+    if 48 <= uni <= 57: # 0-9
         return uni - 48
-    elif 65 <= uni <= 90:
+    elif 65 <= uni <= 90: # A-Z
         return uni - 65 + 10
-    return uni - 97 + 36
+    elif 97 <= uni <= 122: # a-z
+        return uni - 97 + 36
+    elif uni == 1041: # Б
+        return uni - 1041 + 62
+    elif 1043 <= uni <= 1044: # Г, Д
+        return uni - 1043 + 63
+    elif uni == 1025: # Ё
+        return uni - 1025 + 65 
+    elif 1046 <= uni <= 1049: # Ж-Й
+        return uni - 1046 + 66
+    elif uni == 1051: # Л
+        return uni - 1051 + 70
+    elif uni == 1055: # П
+        return uni - 1055 + 71
+    elif uni == 1060: # Ф
+        return uni - 1060 + 72
+    elif 1062 <= uni <= 1071: # Ц-Я
+        return uni - 1060 + 73
+    elif 1073 <= uni <= 1076: # б-д
+        return uni - 1073 + 83
+    elif uni == 1105: # ё
+        return uni - 1105 + 87
+    elif 1078 <= uni <= 1085: # ж-н
+        return uni - 1078 + 88
+    elif uni == 1087: # п
+        return uni - 1087 + 96
+    elif uni == 1090: # т
+        return uni - 1090 + 97
+    elif uni == 1092: # ф
+        return uni - 1092 + 98
+    elif 1094 <= uni <= 1103: # ц-я
+        return uni - 1094 + 99
 
 
 def _map_uni_to_alpha(uni):
-    """Maps [A-Z a-z] to numbers 0-52."""
-    if 65 <= uni <= 90:
+    """Maps [A-Z a-z А-Ё а-ё] to numbers 0-52."""
+    if 65 <= uni <= 90: # A-z
         return uni - 65
-    return uni - 97 + 26
+    elif 97 <= uni <= 122: # a-z:
+        return uni - 97 + 26
+    elif uni == 1041: # Б
+        return uni - 1041 + 52
+    elif 1043 <= uni <= 1044: # Г, Д
+        return uni - 1043 + 53
+    elif uni == 1025: # Ё
+        return uni - 1025 + 55 
+    elif 1046 <= uni <= 1049: # Ж-Й
+        return uni - 1046 + 56
+    elif uni == 1051: # Л
+        return uni - 1051 + 60
+    elif uni == 1055: # П
+        return uni - 1055 + 61
+    elif uni == 1060: # Ф
+        return uni - 1060 + 62
+    elif 1062 <= uni <= 1071: # Ц-Я
+        return uni - 1060 + 63
+    elif 1073 <= uni <= 1076: # б-д
+        return uni - 1073 + 73
+    elif uni == 1105: # ё
+        return uni - 1105 + 77
+    elif 1078 <= uni <= 1085: # ж-н
+        return uni - 1078 + 78
+    elif uni == 1087: # п
+        return uni - 1087 + 86
+    elif uni == 1090: # т
+        return uni - 1090 + 87
+    elif uni == 1092: # ф
+        return uni - 1092 + 88
+    elif 1094 <= uni <= 1103: # ц-я
+        return uni - 1094 + 89
 
 
 ############# UTILS FOR CONVERTING SFD/SPLINESETS TO SVG PATHS ################
@@ -908,8 +970,10 @@ def is_valid_glyph(g):
     is_09 = 48 <= g['uni'] <= 57
     is_capital_az = 65 <= g['uni'] <= 90
     is_az = 97 <= g['uni'] <= 122
+    is_cyr = (1072 <= g['uni'] <= 1103) or (g['uni'] == 1105)
+    is_capital_cyr = (1040 <= g['uni'] <= 1071) or (g['uni'] == 1025)
     is_valid_dims = g['width'] != 0 and g['vwidth'] != 0
-    return (is_09 or is_capital_az or is_az) and is_valid_dims
+    return (is_09 or is_capital_az or is_az or is_cyr or is_capital_cyr) and is_valid_dims
 
 
 def is_valid_path(pathunibfp):

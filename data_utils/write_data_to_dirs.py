@@ -20,7 +20,7 @@ def create_db(opts):
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
     print(f"Number {opts.split} fonts before processing", num_fonts)
-    num_processes = mp.cpu_count() - 2
+    num_processes = mp.cpu_count()
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(opts.charset)
     num_chars_w = len(str(num_chars))
@@ -84,8 +84,9 @@ def create_db(opts):
             if len(cur_font_glyphs) == num_chars:
                 # use the font whose all glyphs are valid
                 # merge the whole font
-                merged_res = {}
+                #merged_res = {}
                 if not os.path.exists(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')):
+                    print('shit')
                     continue
                 else:
                     rendered = np.load(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy'))
@@ -127,7 +128,7 @@ def cal_mean_stddev(opts):
             font_paths.append(os.path.join(dir_path, dir_name))
     font_paths.sort()
     num_fonts = len(font_paths)
-    num_processes = mp.cpu_count() - 2
+    num_processes = mp.cpu_count()
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(opts.charset) 
     manager = mp.Manager()
@@ -171,7 +172,7 @@ def cal_mean_stddev(opts):
 
 def main():
     parser = argparse.ArgumentParser(description="LMDB creation")
-    parser.add_argument("--charset", type=str, default='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
+    parser.add_argument("--charset", type=str, default='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzБГДЁЖЗИЙЛПФЦЧШЩЪЫЬЭЮЯбвгдёжзийклмнптфцчшщъыьэюя')
     parser.add_argument("--ttf_path", type=str, default='font_ttfs')
     parser.add_argument('--sfd_path', type=str, default='font_sfds')
     parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset_dirs_/',

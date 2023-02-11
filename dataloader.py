@@ -8,7 +8,7 @@ import torchvision.transforms as T
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 class SVGDataset(data.Dataset):
-    def __init__(self, root_path, img_size=128, char_num = 52, max_seq_len=51, seq_feature_dim=10, transform=None, read='dirs', mode='train'):
+    def __init__(self, root_path, img_size=64, char_num = 99, max_seq_len=51, seq_feature_dim=10, transform=None, read='dirs', mode='train'):
         super().__init__()
         self.mode = mode
         self.img_size = img_size
@@ -25,6 +25,7 @@ class SVGDataset(data.Dataset):
                     self.font_paths.append(os.path.join(self.dir_path, dir_name))
             self.font_paths.sort()
             print(f"Finished loading {mode} paths")
+            print(self.dir_path)
         else:
             self.pkl_path = os.path.join(root_path, self.mode, f'{mode}_all.pkl')
             pkl_f = open(self.pkl_path, 'rb')
@@ -69,12 +70,13 @@ def get_loader(root_path, img_size, char_num, max_seq_len, seq_feature_dim, batc
     dataloader = data.DataLoader(dataset, batch_size, shuffle=(mode == 'train'), num_workers=batch_size, drop_last=True)
     return dataloader
 
+
 if __name__ == '__main__':
-    root_path = 'data/new_data'
+    root_path = 'data/vecfont_dataset_dirs'
     max_seq_len = 51
     seq_feature_dim = 10
     batch_size = 1
-    char_num = 52
+    char_num = 99
 
     loader = get_loader(root_path, char_num, max_seq_len, seq_feature_dim, batch_size, 'dirs', 'train')
     fout = open('train_id_record_old.txt','w')

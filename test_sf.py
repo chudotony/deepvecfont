@@ -26,16 +26,16 @@ def test_main_model(opts):
     res_dir = os.path.join(exp_dir, "results")
     if not os.path.exists(res_dir):
         os.mkdir(res_dir)
-    
+
     test_loader = get_loader(opts.data_root, opts.image_size, opts.char_categories, opts.max_seq_len, opts.seq_feature_dim, opts.batch_size, opts.read_mode, 'test')
 
-    img_encoder = ImageEncoder(img_size=opts.image_size, input_nc=opts.char_categories, output_nc=1, ngf=16, norm_layer=nn.LayerNorm)
+    img_encoder = ImageEncoder(img_size=opts.image_size, input_nc = opts.char_categories, output_nc = 1, ngf = 16, norm_layer=nn.LayerNorm)
 
-    img_decoder = ImageDecoder(img_size=opts.image_size, input_nc=opts.bottleneck_bits + opts.char_categories, output_nc=1, ngf=16, norm_layer=nn.LayerNorm)
+    img_decoder = ImageDecoder(img_size=opts.image_size, input_nc = opts.bottleneck_bits + opts.char_categories, output_nc = 1, ngf = 16, norm_layer=nn.LayerNorm)
     
     vggptlossfunc = VGGPerceptualLoss()
 
-    modality_fusion = ModalityFusion(img_feat_dim=16 * opts.image_size, hidden_size=opts.hidden_size, ref_nshot=opts.ref_nshot, bottleneck_bits=opts.bottleneck_bits, mode=opts.mode)
+    modality_fusion = ModalityFusion(img_feat_dim = 16 * opts.image_size, hidden_size = opts.hidden_size, ref_nshot = opts.ref_nshot, bottleneck_bits = opts.bottleneck_bits, mode=opts.mode)
 
     svg_encoder = SVGLSTMEncoder(char_categories=opts.char_categories,
                                  bottleneck_bits=opts.bottleneck_bits, mode=opts.mode, max_sequence_length=opts.max_seq_len,
@@ -120,30 +120,30 @@ def test_main_model(opts):
                 imgsr_model.forward()
 
             output_img_hr = imgsr_model.fake_B 
-            savedir_idx = os.path.join(res_dir, "%04d"%test_idx)
+            savedir_idx = os.path.join(res_dir,"%04d"%test_idx)
 
             if not os.path.exists(savedir_idx):
                 os.mkdir(savedir_idx)
-                os.mkdir(os.path.join(savedir_idx, "imgs_" + str(opts.image_size)))
-                os.mkdir(os.path.join(savedir_idx, "imgs_" + str(opts.image_size_sr)))
-                os.mkdir(os.path.join(savedir_idx, "svgs"))
+                os.mkdir(os.path.join(savedir_idx,"imgs_64"))
+                os.mkdir(os.path.join(savedir_idx,"imgs_256"))
+                os.mkdir(os.path.join(savedir_idx,"svgs"))
 
             img_sample_merge = torch.cat((trg_img.data, output_img.data), -2)
-            save_file_merge = os.path.join(savedir_idx, "imgs_" + str(opts.image_size), f"merge_" + str(opts.image_size) + ".png")
+            save_file_merge = os.path.join(savedir_idx,"imgs_64", f"merge_64.png")
             save_image(img_sample_merge, save_file_merge, nrow=8, normalize=True)    
 
-            for char_idx in range(opts.char_categories):
+            for char_idx in range(0, opts.char_categories - opts.ref_nshot):
                 img_gt = (1.0 - trg_img[char_idx,...]).data
-                save_file_gt = os.path.join(savedir_idx, "imgs_" + str(opts.image_size), f"{char_idx:02d}_gt.png")
+                save_file_gt = os.path.join(savedir_idx,"imgs_64", f"{char_idx:02d}_gt.png")
                 save_image(img_gt, save_file_gt, normalize=True)
 
                 img_sample = (1.0 - output_img[char_idx,...]).data
-                save_file = os.path.join(savedir_idx,"imgs_" + str(opts.image_size), f"{char_idx:02d}_" + str(opts.image_size) + ".png")
+                save_file = os.path.join(savedir_idx,"imgs_64", f"{char_idx:02d}_64.png")
                 #save_image(img_sample, save_file, nrow=8, normalize=True)
                 save_image(img_sample, save_file, normalize=True)
                 
                 img_sample_hr = output_img_hr[char_idx,...].data
-                save_file_hr = os.path.join(savedir_idx,"imgs_" + str(opts.image_size_sr), f"{char_idx:02d}_" + str(opts.image_size_sr) + ".png")
+                save_file_hr = os.path.join(savedir_idx,"imgs_256", f"{char_idx:02d}_256.png")
                 #save_image(img_sample_hr, save_file_hr, nrow=8, normalize=True)
                 save_image(img_sample_hr, save_file_hr, normalize=True) 
             
@@ -213,19 +213,20 @@ def network_forward(data, mean, std, opts, network_moudules):
     if opts.ref_nshot == 1:
         ref_cls = torch.randint(0, opts.char_categories, (input_image.size(0), opts.ref_nshot)).to(device)
     else:
-        ref_cls_upper = torch.tensor([[0,1]]).to(device) # A B
-        ref_cls_lower = torch.tensor([[26,27]]).to(device) # a, b
+        #ref_cls_upper = torch.tensor([[0,1]]).to(device) # A B
+        #ref_cls_lower = torch.tensor([[26,27]]).to(device) # a, b
         #ref_cls_upper = torch.randint(0, opts.char_categories // 2, (input_image.size(0), opts.ref_nshot // 2)).to(device) # bs, 1
         #ref_cls_lower = torch.randint(opts.char_categories // 2, opts.char_categories, (input_image.size(0), opts.ref_nshot - opts.ref_nshot // 2)).to(device) # bs, 1
+        ref_cls_upper = torch.arange(0, opts.ref_nshot//2).unsqueeze(0).to(device)
+        ref_cls_lower = torch.arange(opts.ref_nshot//2, opts.ref_nshot).unsqueeze(0).to(device)
         ref_cls = torch.cat((ref_cls_upper,ref_cls_lower), -1)
-    
     # the input reference images 
-    trg_cls = torch.randint(0, opts.char_categories, (input_image.size(0), 1)).to(device) # bs, 1
-    trg_cls = torch.arange(0, opts.char_categories).to(device) # bs, 1
-    trg_cls = trg_cls.view(opts.char_categories, 1)
+    trg_cls = torch.randint(opts.ref_nshot, opts.char_categories, (input_image.size(0), 1)).to(device) # bs, 1
+    trg_cls = torch.arange(opts.ref_nshot, opts.char_categories).to(device) # bs, 1
+    trg_cls = trg_cls.view(len(trg_cls), 1)
 
     ref_cls_multihot = torch.zeros(input_image.size(0), opts.char_categories).to(device) # bs, 1
-    for ref_id in range(0,opts.ref_nshot):
+    for ref_id in range(0, opts.ref_nshot):
         ref_cls_multihot = torch.logical_or(ref_cls_multihot, util_funcs.trgcls_to_onehot(input_clss, ref_cls[:,ref_id:ref_id+1], opts))
     ref_cls_multihot = ref_cls_multihot.to(torch.float32)
     ref_cls_multihot = ref_cls_multihot.unsqueeze(2)
@@ -234,11 +235,11 @@ def network_forward(data, mean, std, opts, network_moudules):
     ref_img = torch.mul(input_image, ref_cls_multihot)
 
     # randomly select a target glyph image
-    trg_img = util_funcs.select_imgs(input_image.repeat(opts.char_categories,1,1,1), trg_cls, opts)
+    trg_img = util_funcs.select_imgs(input_image.repeat(len(trg_cls),1,1,1), trg_cls, opts)
     # randomly select ref vector glyphs
     ref_seq = util_funcs.select_seqs(input_sequence, ref_cls, opts) # [opts.batch_size, opts.ref_nshot, opts.max_seq_len, opts.seq_feature_dim]
     # randomly select a target vector glyph
-    trg_seq = util_funcs.select_seqs(input_sequence.repeat(opts.char_categories,1,1,1), trg_cls, opts)
+    trg_seq = util_funcs.select_seqs(input_sequence.repeat(len(trg_cls),1,1,1), trg_cls, opts)
     trg_seq = trg_seq.squeeze(1)
     # the one-hot target char class
     trg_char = util_funcs.trgcls_to_onehot(input_clss.repeat(opts.char_categories,1,1), trg_cls, opts)
@@ -280,7 +281,7 @@ def network_forward(data, mean, std, opts, network_moudules):
     latent_feat = mf_output['latent']
     kl_loss = mf_output['kl_loss']
     # run image decoder
-    latent_feat = latent_feat.repeat(opts.char_categories, 1)
+    latent_feat = latent_feat.repeat(len(trg_cls), 1)
     img_decoder_out = img_decoder(latent_feat, trg_char, trg_img)
     
     vggpt_loss = vggptlossfunc(img_decoder_out['gen_imgs'], trg_img)
@@ -313,14 +314,13 @@ def network_forward(data, mean, std, opts, network_moudules):
         sampled_svg_list.append(sampled_svg)
 
         top_output = mdn_top_layer(outputs)
-        trg_seqlen = util_funcs.select_seqlens(input_seqlen.repeat(opts.char_categories,1,1), trg_cls, opts)
+        trg_seqlen = util_funcs.select_seqlens(input_seqlen.repeat(len(trg_cls),1,1), trg_cls, opts)
         trg_seqlen = trg_seqlen.squeeze()
 
         svg_losses = mdn_top_layer.svg_loss(top_output, trg_seq, trg_seqlen+1, opts.max_seq_len)
 
 
     return img_decoder_out, vggpt_loss, kl_loss, svg_losses, trg_img, ref_img, gt_trg_seq, sampled_svg_list
-
 
 def test(opts):
     if opts.model_name == 'main_model':

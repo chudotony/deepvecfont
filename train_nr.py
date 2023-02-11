@@ -30,7 +30,7 @@ def train_nr_model(opts):
     val_loader = get_loader(opts.data_root, opts.image_size, opts.char_categories, opts.max_seq_len, opts.seq_feature_dim, opts.batch_size, opts.read_mode, 'test')
 
     neural_rasterizer = NeuralRasterizer(img_size=opts.image_size, feature_dim=opts.seq_feature_dim, hidden_size=opts.hidden_size, num_hidden_layers=opts.num_hidden_layers, 
-                                         ff_dropout_p=opts.ff_dropout, rec_dropout_p=opts.rec_dropout, input_nc=2 * opts.hidden_size, 
+                                         ff_dropout_p=opts.ff_dropout, rec_dropout_p=opts.rec_dropout, input_nc = 2 * opts.hidden_size, 
                                          output_nc=1, ngf=16, bottleneck_bits=opts.bottleneck_bits, norm_layer=nn.LayerNorm, mode='train')
     
     vggcxlossfunc = VGGContextualLoss()
@@ -58,6 +58,7 @@ def train_nr_model(opts):
         for idx, data in enumerate(train_loader):
 
             input_image = data['rendered'].to(device) # bs, opts.char_categories, opts.image_size, opts.image_size
+            torch.set_printoptions(profile="full")
             input_sequence = data['sequence'].to(device)
             input_sequence = (input_sequence - mean) / std
             input_seqlen = data['seq_len'].to(device) # bs, opts.char_categories 1
@@ -134,7 +135,7 @@ def train_nr_model(opts):
                         val_trg_img = util_funcs.select_imgs(val_input_image, val_trg_cls, opts)
                         val_trg_seq = util_funcs.select_seqs(val_input_sequence, val_trg_cls, opts)
                         val_trg_seq = val_trg_seq.squeeze(1)
-                        val_trg_seq = val_trg_seq.transpose(0, 1) # seqlen, bs ,feat_dim
+                        val_trg_seq = val_trg_seq.transpose(0,1) # seqlen, bs ,feat_dim
                         val_trg_char = util_funcs.trgcls_to_onehot(val_input_clss, val_trg_cls, opts)
                         # run the image encoder-decoder
                         val_nr_out = neural_rasterizer(val_trg_seq, val_trg_char, val_trg_img)

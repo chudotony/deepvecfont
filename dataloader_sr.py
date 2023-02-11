@@ -5,10 +5,11 @@ import numpy as np
 import torch
 import torch.utils.data as data
 import torchvision.transforms as T
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 class SVGDataset(data.Dataset):
-    def __init__(self, root_path, char_num=52, transform=None, read='dirs', img_lr=128, img_hr=256, mode='train'):
+    def __init__(self, root_path, char_num = 99, transform=None, read='dirs', img_lr=64, img_hr=256, mode='train'):
         super().__init__()
         self.img_lr = img_lr
         self.img_hr = img_hr

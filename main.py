@@ -33,14 +33,14 @@ def train_main_model(opts):
     train_loader = get_loader(opts.data_root, opts.image_size, opts.char_categories, opts.max_seq_len, opts.seq_feature_dim, opts.batch_size, opts.read_mode, opts.mode)
     val_loader = get_loader(opts.data_root, opts.image_size, opts.char_categories, opts.max_seq_len, opts.seq_feature_dim, opts.batch_size, opts.read_mode, 'test')
 
-    img_encoder = ImageEncoder(img_size=opts.image_size, input_nc=opts.char_categories, output_nc=1, ngf=16, norm_layer=nn.LayerNorm)
+    img_encoder = ImageEncoder(img_size = opts.image_size, input_nc = opts.char_categories, output_nc = 1, ngf = 16, norm_layer=nn.LayerNorm)
 
-    img_decoder = ImageDecoder(img_size=opts.image_size, input_nc=opts.bottleneck_bits + opts.char_categories, output_nc=1, ngf=16, norm_layer=nn.LayerNorm)
+    img_decoder = ImageDecoder(img_size = opts.image_size, input_nc = opts.bottleneck_bits + opts.char_categories, output_nc = 1, ngf = 16, norm_layer=nn.LayerNorm)
 
     vggptlossfunc = VGGPerceptualLoss()
 
-    modality_fusion = ModalityFusion(img_feat_dim=16 * opts.image_size, hidden_size=opts.hidden_size, 
-                                     ref_nshot=opts.ref_nshot, bottleneck_bits=opts.bottleneck_bits, mode=opts.mode)
+    modality_fusion = ModalityFusion(img_feat_dim = 16 * opts.image_size, hidden_size = opts.hidden_size, 
+                                     ref_nshot = opts.ref_nshot, bottleneck_bits = opts.bottleneck_bits, mode=opts.mode)
 
     svg_encoder = SVGLSTMEncoder(char_categories=opts.char_categories,
                                  bottleneck_bits=opts.bottleneck_bits, mode=opts.mode, max_sequence_length=opts.max_seq_len,
@@ -57,7 +57,7 @@ def train_main_model(opts):
                               gauss_temperature=opts.gauss_temperature, dont_reduce=opts.dont_reduce_loss)
 
     neural_rasterizer = NeuralRasterizer(img_size=opts.image_size, feature_dim=opts.seq_feature_dim, hidden_size=opts.hidden_size, num_hidden_layers=opts.num_hidden_layers, 
-                                         ff_dropout_p=opts.ff_dropout, rec_dropout_p=opts.rec_dropout, input_nc=2 * opts.hidden_size, 
+                                         ff_dropout_p=opts.ff_dropout, rec_dropout_p=opts.rec_dropout, input_nc = 2 * opts.hidden_size, 
                                          output_nc=1, ngf=16, bottleneck_bits=opts.bottleneck_bits, norm_layer=nn.LayerNorm, mode='test')
 
     neural_rasterizer_fpath = os.path.join("./experiments/dvf_neural_raster/checkpoints/neural_raster_" + str(opts.nr_ckpt_num) + ".nr.pth")
@@ -179,8 +179,8 @@ def train_main_model(opts):
                         writer.add_scalar('VAL/img_pt_loss', val_img_pt_loss, batches_done)
                         writer.add_scalar('VAL/cmd_softmax_loss', val_cmd_softmax_loss, batches_done)
                         writer.add_scalar('VAL/coord_mdn_loss', val_coord_mdn_loss, batches_done)
-                        writer.add_scalar('VAL/synsvg_nr_rec_loss', val_synsvg_nr_rec_loss, batches_done)
-
+                        writer.add_scalar('VAL/synsvg_nr_rec_loss', val_synsvg_nr_rec_loss, batches_done)                          
+                        
                     val_msg = (
                         f"Epoch: {epoch}/{opts.n_epochs}, Batch: {idx}/{len(train_loader)}, "
                         f"Val image l1 loss: {val_img_l1_loss: .6f}, "
@@ -227,13 +227,17 @@ def network_forward(data, mean, std, opts, network_moudules):
     # randomly choose reference classes and target classes
     if opts.ref_nshot == 1:
         ref_cls = torch.randint(0, opts.char_categories, (input_image.size(0), opts.ref_nshot)).to(device)
+    elif opts.ref_nshot == 52:
+        ref_cls_upper = torch.randint(0, 26, (input_image.size(0), opts.ref_nshot // 2)).to(device)
+        ref_cls_lower = torch.randint(26, 52, (input_image.size(0), opts.ref_nshot // 2)).to(device)
+        ref_cls = torch.cat((ref_cls_upper, ref_cls_lower), -1)
     else:
         ref_cls_upper = torch.randint(0, opts.char_categories // 2, (input_image.size(0), opts.ref_nshot // 2)).to(device) # bs, 1
         ref_cls_lower = torch.randint(opts.char_categories // 2, opts.char_categories, (input_image.size(0), opts.ref_nshot - opts.ref_nshot // 2)).to(device) # bs, 1
         ref_cls = torch.cat((ref_cls_upper, ref_cls_lower), -1)
     
     # the input reference images 
-    trg_cls = torch.randint(0, opts.char_categories, (input_image.size(0), 1)).to(device) # bs, 1
+    trg_cls = torch.randint(52, opts.char_categories, (input_image.size(0), 1)).to(device) # bs, 1 # bs, 1
     ref_cls_multihot = torch.zeros(input_image.size(0), opts.char_categories).to(device) # bs, 1
     for ref_id in range(0,opts.ref_nshot):
         ref_cls_multihot = torch.logical_or(ref_cls_multihot, util_funcs.trgcls_to_onehot(input_clss, ref_cls[:, ref_id:ref_id+1], opts))
