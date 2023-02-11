@@ -8,7 +8,7 @@ from models.lstm_layernorm import LayerNormLSTM
 import models.util_funcs as util_funcs
 
 class SVGLSTMDecoder(nn.Module):
-    def __init__(self, char_categories=52,
+    def __init__(self, char_categories=99,
                  bottleneck_bits=32, mode='train', max_sequence_length=51,
                  hidden_size=1024, num_hidden_layers=4, feature_dim=10, ff_dropout=0.5, rec_dropout=0.3):
         super().__init__()
@@ -116,7 +116,7 @@ class SVGMDNTop(nn.Module):
         out_logmix_max = torch.max(out_logmix, dim=-1, keepdim=True)[0]
         out_logmix = torch.exp(out_logmix - out_logmix_max)
         out_logmix = out_logmix / torch.sum(out_logmix, dim=-1, keepdim=True)
-        # out_logmix = torch.argmax(out_logmix, -1)
+        # out_logmix = torch.argmax(out_logmix,-1)
         out_logmix = Categorical(probs=out_logmix).sample()
         # [seq_len*batch*arg_len]
         out_logmix_tmp = out_logmix.unsqueeze(1)

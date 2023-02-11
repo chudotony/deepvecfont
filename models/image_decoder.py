@@ -10,8 +10,8 @@ class ImageDecoder(nn.Module):
 
         super(ImageDecoder, self).__init__()
         n_upsampling = int(math.log(img_size, 2))
-        ks_list = [3] * (n_upsampling // 3) + [5] * (n_upsampling - n_upsampling // 3)
-        stride_list = [2] * n_upsampling
+        ks_list = [3, 3, 5, 5, 5, 5]
+        stride_list = [2, 2, 2, 2, 2, 2]
         decoder = []
         mult = 2 ** (n_upsampling)
         decoder += [nn.ConvTranspose2d(input_nc, int(ngf * mult / 2),
@@ -31,6 +31,7 @@ class ImageDecoder(nn.Module):
 
     def forward(self, latent_feat, trg_char, trg_img):
         """Standard forward"""
+
         dec_input = torch.cat((latent_feat,trg_char),-1)
         dec_input = dec_input.view(dec_input.size(0),dec_input.size(1), 1, 1)
         dec_out = self.decode(dec_input)

@@ -15,7 +15,7 @@ def init_weights(m):
 
 
 class ModalityFusion(nn.Module):
-    def __init__(self, img_feat_dim=128, hidden_size=128, ref_nshot=4, bottleneck_bits=32, mode='train'):
+    def __init__(self, img_feat_dim=128, hidden_size=128, ref_nshot=52, bottleneck_bits=32, mode='train'):
         super().__init__()
         self.mode = mode
         self.bottleneck_bits = bottleneck_bits

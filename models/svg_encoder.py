@@ -9,7 +9,7 @@ import models.util_funcs as util_funcs
 
 
 class SVGLSTMEncoder(nn.Module):
-    def __init__(self, char_categories=52,
+    def __init__(self, char_categories=99,
                  bottleneck_bits=32, mode='train', max_sequence_length=51, hidden_size=1024,
                  num_hidden_layers=4, feature_dim=10, ff_dropout=0.5, rec_dropout=0.3):
         super().__init__()
