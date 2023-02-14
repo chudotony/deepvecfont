@@ -1,6 +1,6 @@
 # DeepVecFont Cyrillic
 
-This is the Pytorch implementation of the paper "[Yizhi Wang and Zhouhui Lian. DeepVecFont: Synthesizing High-quality Vector Fonts via Dual-modality Learning. SIGGRAPH Asia. 2021.] (https://arxiv.org/abs/2110.06688)" for Cyrillic letters.
+This is the Pytorch implementation of the paper "[Yizhi Wang and Zhouhui Lian. DeepVecFont: Synthesizing High-quality Vector Fonts via Dual-modality Learning. SIGGRAPH Asia. 2021.](https://arxiv.org/abs/2110.06688)" for Cyrillic letters.
 
 <div align=center>
 	<img src="imgs/teaser_cyr.png"> 
@@ -25,8 +25,8 @@ This is the Pytorch implementation of the paper "[Yizhi Wang and Zhouhui Lian. D
 
 ## Acknowledgment
 
-- [DeepVecFont] (https://yizhiwang96.github.io/deepvecfont_homepage/)
+- [DeepVecFont](https://yizhiwang96.github.io/deepvecfont_homepage/)
 - [SVG-VAE](https://github.com/magenta/magenta/tree/main/magenta/models/svg_vae)
 - [SVG-VAE-pytorch](https://github.com/hologerry/svg_vae_pytorch) by [hologerry](https://github.com/hologerry)
 - [Diffvg](https://github.com/BachiLi/diffvg)
-- [Paratype] (https://www.paratype.com/)
+- [Paratype](https://www.paratype.com/)
